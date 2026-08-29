@@ -133,11 +133,15 @@ The backend loads configuration from a local `.env` file located at `backend/.en
 
 > **IMPORTANT**: The `.env` file contains sensitive secrets and database credentials and must **NEVER** be committed to GitHub or version control.
 
-### Required Environment Variables
-- `DATABASE_URL`
-- `SECRET_KEY`
-- `ALGORITHM`
-- `ACCESS_TOKEN_EXPIRE_MINUTES`
+### Backend Environment Variables
+- `DATABASE_URL` — PostgreSQL connection string.
+- `SECRET_KEY` — JWT signing secret key.
+- `ALGORITHM` — JWT signing algorithm (e.g. `HS256`).
+- `ACCESS_TOKEN_EXPIRE_MINUTES` — Access token lifetime in minutes.
+- `ALLOWED_ORIGINS` — Optional comma-separated list of allowed CORS origins (e.g., `https://your-app.vercel.app`). Defaults to local development origins (`http://localhost:5173`, `http://127.0.0.1:5173`).
+
+### Frontend Environment Variables
+- `VITE_API_URL` — Optional. Deployed backend API base URL (e.g., `https://your-backend.onrender.com`). Defaults to `http://127.0.0.1:8001` for local development.
 
 ### Example `backend/.env` (Placeholder values only):
 ```env
@@ -145,6 +149,7 @@ DATABASE_URL=postgresql://your_user:your_password@localhost:5432/expense_tracker
 SECRET_KEY=your_secret_key_here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
 ## Database

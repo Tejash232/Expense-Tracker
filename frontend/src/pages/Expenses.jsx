@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import API_URL from '../config.js'
 import './Expenses.css'
-
-const API_URL = 'http://127.0.0.1:8001'
 
 const navItems = [
 	['dashboard', 'Dashboard', '/'],

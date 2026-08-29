@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import API_URL from '../config.js'
 import './Register.css'
 
 function Register({ onRegister, onShowLogin }) {
@@ -16,7 +17,7 @@ function Register({ onRegister, onShowLogin }) {
     setLoading(true)
 
     try {
-      const response = await fetch('http://127.0.0.1:8001/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

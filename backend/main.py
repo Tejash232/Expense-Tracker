@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,14 +17,30 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+def get_allowed_origins() -> list[str]:
+    default_origins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-    ],
+    ]
+    env_origins_str = os.getenv("ALLOWED_ORIGINS")
+
+    if not env_origins_str:
+        return default_origins
+
+    parsed_origins = [
+        origin.strip()
+        for origin in env_origins_str.split(",")
+        if origin.strip()
+    ]
+
+    return parsed_origins or default_origins
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
