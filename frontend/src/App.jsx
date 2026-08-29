@@ -32,6 +32,8 @@ function App() {
 
   const [path, setPath] = useState(currentPath)
 
+  const [autoOpenAddExpense, setAutoOpenAddExpense] = useState(false)
+
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -145,8 +147,6 @@ function App() {
     )
   }
 
-
-  const [autoOpenAddExpense, setAutoOpenAddExpense] = useState(false)
 
   const handleQuickAdd = () => {
     setAutoOpenAddExpense(true)
