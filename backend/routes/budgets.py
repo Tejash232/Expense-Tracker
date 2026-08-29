@@ -1,3 +1,5 @@
+import calendar
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -20,36 +22,53 @@ def get_db():
         db.close()
 
 
+def get_month_bounds(month_date: date):
+    start = month_date.replace(day=1)
+    _, last_day = calendar.monthrange(start.year, start.month)
+    end = start.replace(day=last_day)
+    return start, end
+
+
+def calculate_spent(db: Session, user_id: int, category: str, month_date: date) -> float:
+    start, end = get_month_bounds(month_date)
+    spent = (
+        db.query(func.coalesce(func.sum(Expense.amount), 0))
+        .filter(
+            Expense.category == category,
+            Expense.user_id == user_id,
+            Expense.date >= start,
+            Expense.date <= end
+        )
+        .scalar()
+    )
+    return float(spent)
+
+
 @router.get("/", response_model=list[BudgetResponse])
 def get_budgets(
+    month: date | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    budgets = (
-        db.query(Budget)
-        .filter(Budget.user_id == current_user.id)
-        .order_by(Budget.id.desc())
-        .all()
-    )
+    query = db.query(Budget).filter(Budget.user_id == current_user.id)
+
+    if month is not None:
+        target_month = month.replace(day=1)
+        query = query.filter(Budget.month == target_month)
+
+    budgets = query.order_by(Budget.id.desc()).all()
 
     result = []
 
     for budget in budgets:
-
-        spent = (
-            db.query(func.coalesce(func.sum(Expense.amount), 0))
-            .filter(
-                Expense.category == budget.category,
-                Expense.user_id == current_user.id
-            )
-            .scalar()
-        )
+        spent = calculate_spent(db, current_user.id, budget.category, budget.month)
 
         result.append({
             "id": budget.id,
             "category": budget.category,
             "amount": budget.amount,
-            "spent": float(spent)
+            "month": budget.month,
+            "spent": spent
         })
 
     return result
@@ -61,10 +80,29 @@ def create_budget(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    normalized_month = budget.month.replace(day=1)
+
+    existing = (
+        db.query(Budget)
+        .filter(
+            Budget.user_id == current_user.id,
+            func.lower(Budget.category) == func.lower(budget.category.strip()),
+            Budget.month == normalized_month
+        )
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A budget for '{budget.category.strip()}' already exists for {normalized_month.strftime('%B %Y')}."
+        )
+
     new_budget = Budget(
         user_id=current_user.id,
-        category=budget.category,
+        category=budget.category.strip(),
         amount=budget.amount,
+        month=normalized_month,
         spent=0
     )
 
@@ -72,11 +110,14 @@ def create_budget(
     db.commit()
     db.refresh(new_budget)
 
+    spent = calculate_spent(db, current_user.id, new_budget.category, new_budget.month)
+
     return {
         "id": new_budget.id,
         "category": new_budget.category,
         "amount": new_budget.amount,
-        "spent": 0
+        "month": new_budget.month,
+        "spent": spent
     }
 
 
@@ -102,26 +143,40 @@ def update_budget(
             detail="Budget not found"
         )
 
-    existing_budget.category = budget.category
+    normalized_month = budget.month.replace(day=1)
+
+    duplicate = (
+        db.query(Budget)
+        .filter(
+            Budget.user_id == current_user.id,
+            func.lower(Budget.category) == func.lower(budget.category.strip()),
+            Budget.month == normalized_month,
+            Budget.id != budget_id
+        )
+        .first()
+    )
+
+    if duplicate:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A budget for '{budget.category.strip()}' already exists for {normalized_month.strftime('%B %Y')}."
+        )
+
+    existing_budget.category = budget.category.strip()
     existing_budget.amount = budget.amount
+    existing_budget.month = normalized_month
 
     db.commit()
     db.refresh(existing_budget)
 
-    spent = (
-        db.query(func.coalesce(func.sum(Expense.amount), 0))
-        .filter(
-            Expense.category == existing_budget.category,
-            Expense.user_id == current_user.id
-        )
-        .scalar()
-    )
+    spent = calculate_spent(db, current_user.id, existing_budget.category, existing_budget.month)
 
     return {
         "id": existing_budget.id,
         "category": existing_budget.category,
         "amount": existing_budget.amount,
-        "spent": float(spent)
+        "month": existing_budget.month,
+        "spent": spent
     }
 
 
@@ -151,4 +206,4 @@ def delete_budget(
 
     return {
         "message": "Budget deleted successfully"
-    }
+    }

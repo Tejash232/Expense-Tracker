@@ -111,18 +111,22 @@ function Dashboard({ activePath = '/', onLogout }) {
 
 				const token = localStorage.getItem('access_token')
 
+				const now = new Date()
+				const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+
 				const [expensesResponse, budgetsResponse] = await Promise.all([
 					fetch(`${API_URL}/expenses/`, {
 						headers: {
 							Authorization: `Bearer ${token}`,
 						},
 					}),
-					fetch(`${API_URL}/budgets/`, {
+					fetch(`${API_URL}/budgets/?month=${currentMonthStr}`, {
 						headers: {
 							Authorization: `Bearer ${token}`,
 						},
 					}),
 				])
+
 
 				if (
 					expensesResponse.status === 401 ||

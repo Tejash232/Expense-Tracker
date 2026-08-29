@@ -20,6 +20,8 @@ class ExpenseResponse(ExpenseCreate):
 class BudgetCreate(BaseModel):
     category: str
     amount: float
+    month: date
+
 
 
 class BudgetResponse(BudgetCreate):

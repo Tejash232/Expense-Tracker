@@ -36,6 +36,8 @@ class Budget(Base):
     category = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     spent = Column(Float, default=0)
+    month = Column(Date, nullable=False)
+
 
 
 class User(Base):

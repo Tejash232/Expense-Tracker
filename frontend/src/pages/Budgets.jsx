@@ -173,8 +173,16 @@ function Header() {
 	)
 }
 
+const getCurrentMonthStr = () => {
+	const now = new Date()
+	const year = now.getFullYear()
+	const month = String(now.getMonth() + 1).padStart(2, '0')
+	return `${year}-${month}`
+}
+
 function Budgets({ activePath = '/budgets', onLogout }) {
 	const [budgets, setBudgets] = useState([])
+	const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthStr())
 
 	const [editingBudget, setEditingBudget] =
 		useState(null)
@@ -197,7 +205,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 					localStorage.getItem('access_token')
 
 				const response = await fetch(
-					`${API_URL}/budgets/`,
+					`${API_URL}/budgets/?month=${selectedMonth}-01`,
 					{
 						headers: {
 							Authorization: `Bearer ${token}`,
@@ -244,7 +252,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 		}
 
 		loadBudgets()
-	}, [onLogout])
+	}, [selectedMonth, onLogout])
 
 	// --------------------------------------------------
 	// TOTALS
@@ -288,6 +296,10 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 		const category =
 			editingBudget.category.trim()
 
+		const monthStr = editingBudget.month
+			? (editingBudget.month.length === 7 ? `${editingBudget.month}-01` : editingBudget.month)
+			: `${selectedMonth}-01`
+
 		if (!category || !amount || amount < 0) {
 			return
 		}
@@ -323,6 +335,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 					body: JSON.stringify({
 						category: category,
 						amount: amount,
+						month: monthStr,
 					}),
 				}
 			)
@@ -342,9 +355,17 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 					responseText
 				)
 
-				throw new Error(
-					`Backend error: ${response.status}`
-				)
+				let message = `Could not save budget. (${response.status})`
+				try {
+					const parsed = JSON.parse(responseText)
+					if (parsed.detail) {
+						message = parsed.detail
+					}
+				} catch (e) {
+					// ignore
+				}
+
+				throw new Error(message)
 			}
 
 			const savedBudget =
@@ -360,10 +381,12 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 					)
 				)
 			} else {
-				setBudgets((current) => [
-					savedBudget,
-					...current,
-				])
+				if (savedBudget.month && savedBudget.month.startsWith(selectedMonth)) {
+					setBudgets((current) => [
+						savedBudget,
+						...current,
+					])
+				}
 			}
 
 			setEditingBudget(null)
@@ -374,7 +397,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 			)
 
 			setError(
-				'Could not save budget. Make sure the backend is running.'
+				err.message || 'Could not save budget. Make sure the backend is running.'
 			)
 		}
 	}
@@ -453,7 +476,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 
 					{/* HEADER */}
 
-					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-stack-md mb-8">
+					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-stack-md mb-8">
 						<div>
 							<h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">
 								Monthly Budget
@@ -464,22 +487,35 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 							</p>
 						</div>
 
-						<button
-							className="bg-primary text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-stack-sm"
-							onClick={() =>
-								setEditingBudget({
-									id: null,
-									category: '',
-									amount: '',
-								})
-							}
-						>
-							<Icon size="18px">
-								add
-							</Icon>
+						<div className="flex flex-wrap items-center gap-stack-md">
+							<div className="flex items-center gap-2 bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2">
+								<span className="font-label-md text-label-md text-on-surface-variant font-medium">Month:</span>
+								<input
+									className="bg-transparent border-none outline-none font-body-md text-body-md text-primary cursor-pointer"
+									type="month"
+									value={selectedMonth}
+									onChange={(e) => setSelectedMonth(e.target.value || getCurrentMonthStr())}
+								/>
+							</div>
 
-							Add Budget
-						</button>
+							<button
+								className="bg-primary text-on-primary font-label-md text-label-md py-3 px-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-stack-sm"
+								onClick={() =>
+									setEditingBudget({
+										id: null,
+										category: '',
+										amount: '',
+										month: selectedMonth,
+									})
+								}
+							>
+								<Icon size="18px">
+									add
+								</Icon>
+
+								Add Budget
+							</button>
+						</div>
 					</div>
 
 					{/* ERROR */}
@@ -698,6 +734,8 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 																		budget.category,
 																	amount:
 																		budget.amount,
+																	month:
+																		budget.month ? budget.month.slice(0, 7) : selectedMonth,
 																}
 															)
 														}
@@ -898,6 +936,29 @@ function BudgetModal({
 						type="number"
 						value={
 							budget.amount
+						}
+					/>
+
+				</label>
+
+				<label className="budget-form-field mt-4">
+
+					<span>
+						Budget month
+					</span>
+
+					<input
+						onChange={(event) =>
+							onChange(
+								'month',
+								event.target
+									.value
+							)
+						}
+						required
+						type="month"
+						value={
+							budget.month ? budget.month.slice(0, 7) : ''
 						}
 					/>
 
