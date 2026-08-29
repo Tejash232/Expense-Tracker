@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+.dashboard-shell { background-color: #f7f9fb; color: #191c1e; height: 100vh; overflow-y: auto; }
+.dashboard-shell .card-level-1 { background-color: #fff; border: 1px solid #c6c6cd; box-shadow: 0 2px 4px rgba(0, 0, 0, .04); }
+.dashboard-shell .chart-line { stroke: #006a61; stroke-width: 2px; fill: none; }
+.dashboard-shell .chart-area { fill: url(#areaGradient); }
+.dashboard-shell .donut-segment { transition: stroke-width .2s ease; cursor: pointer; }
+.dashboard-shell .donut-segment:hover { stroke-width: 24; }
+.dashboard-shell .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }

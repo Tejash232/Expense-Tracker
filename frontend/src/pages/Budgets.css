@@ -1,0 +1,14 @@
+.budgets-shell { background: #f7f9fb; color: #191c1e; height: 100vh; overflow-y: auto; }
+.budgets-shell .card-level-1 { background: #fff; border: 1px solid #c6c6cd; box-shadow: 0 2px 4px rgba(0, 0, 0, .04); }
+.budgets-shell .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+.budget-list { display: flex; flex-direction: column; }
+.budget-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.4fr) 88px; align-items: center; gap: 24px; padding: 18px 0; border-bottom: 1px solid rgba(198, 198, 205, .3); }
+.budget-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.budget-progress { min-width: 0; }
+.budget-actions { display: flex; justify-content: flex-end; }
+.budget-modal-backdrop { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(25, 28, 30, .36); }
+.budget-modal { width: min(100%, 460px); padding: 24px; border: 1px solid #c6c6cd; border-radius: 12px; background: #fff; box-shadow: 0 18px 48px rgba(25, 28, 30, .18); }
+.budget-form-field { display: flex; flex-direction: column; gap: 6px; color: #45464d; font: 600 11px/12px Geist, sans-serif; }
+.budget-form-field input { width: 100%; min-height: 40px; box-sizing: border-box; padding: 8px 10px; border: 1px solid rgba(198, 198, 205, .7); border-radius: 6px; outline: 0; background: #f2f4f6; color: #191c1e; font: 400 14px/20px Inter, sans-serif; }
+.budget-form-field input:focus { border-color: #006a61; box-shadow: 0 0 0 2px rgba(0, 106, 97, .14); }
+@media (max-width: 767px) { .budget-row { grid-template-columns: minmax(0, 1fr) 80px; gap: 8px 16px; } .budget-progress { grid-column: 1 / -1; } .budget-actions { grid-column: 2; grid-row: 1; } }
