@@ -7,8 +7,6 @@ const navItems = [
 	['dashboard', 'Dashboard', '/'],
 	['payments', 'Expenses', '/expenses'],
 	['account_balance_wallet', 'Budgets', '/budgets'],
-	['leaderboard', 'Statistics', '#'],
-	['settings', 'Settings', '#'],
 ]
 
 /* Historical mock expense data retained as a comment for reference.
@@ -94,7 +92,7 @@ function Icon({ children, filled = false, size }) {
 	)
 }
 
-function Dashboard({ activePath = '/', onLogout }) {
+function Dashboard({ activePath = '/', onLogout, onQuickAdd }) {
 	const [expenses, setExpenses] = useState([])
 	const [budgets, setBudgets] = useState([])
 	const [loading, setLoading] = useState(true)
@@ -285,11 +283,6 @@ function Dashboard({ activePath = '/', onLogout }) {
 					<h1 className="font-headline-md text-headline-md font-bold text-primary">SpendWise</h1>
 					<p className="font-label-md text-label-md text-on-surface-variant">Wealth Management</p>
 				</div>
-				<div className="px-stack-lg mb-stack-lg">
-					<button className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-stack-sm">
-						<Icon size="18px">add</Icon> New Report
-					</button>
-				</div>
 				<nav className="flex-1 px-stack-sm flex flex-col gap-unit">
 					{navItems.map(([icon, label, href]) => (
 						<a
@@ -303,24 +296,17 @@ function Dashboard({ activePath = '/', onLogout }) {
 					))}
 				</nav>
 				<div className="mt-auto px-stack-sm flex flex-col gap-unit pt-stack-md border-t border-outline-variant/30 mx-stack-sm">
-					{[
-						['help', 'Help Center'],
-						['logout', 'Logout'],
-					].map(([icon, label]) => (
-						<a
-							className="flex items-center gap-stack-md text-on-surface-variant px-stack-md py-2 hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.98] duration-150 rounded-lg"
-							href="#"
-							key={label}
-							onClick={(event) => {
-								if (label === 'Logout') {
-									event.preventDefault()
-									onLogout?.()
-								}
-							}}
-						>
-							<Icon>{icon}</Icon><span className="font-label-md text-label-md">{label}</span>
-						</a>
-					))}
+					<a
+						className="flex items-center gap-stack-md text-on-surface-variant px-stack-md py-2 hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.98] duration-150 rounded-lg"
+						href="#"
+						onClick={(event) => {
+							event.preventDefault()
+							onLogout?.()
+						}}
+					>
+						<Icon>logout</Icon>
+						<span className="font-label-md text-label-md">Logout</span>
+					</a>
 				</div>
 			</aside>
 
@@ -330,18 +316,10 @@ function Dashboard({ activePath = '/', onLogout }) {
 						<button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95"><Icon>menu</Icon></button>
 						<span className="font-headline-md text-headline-md font-bold text-primary">SpendWise</span>
 					</div>
-					<div className="hidden md:flex items-center bg-surface-container-low rounded-lg px-3 py-2 border border-outline-variant/50 focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/20 transition-all w-64">
-						<Icon size="20px">search</Icon>
-						<input className="bg-transparent border-none outline-none font-body-md text-body-md text-primary w-full placeholder:text-on-surface-variant" placeholder="Search transactions..." type="text" />
-					</div>
-					<div className="flex items-center gap-stack-md">
-						<button className="hidden sm:block text-secondary font-label-md text-label-md font-medium px-4 py-1.5 rounded border border-secondary hover:bg-secondary/5 transition-colors duration-200 cursor-pointer active:scale-95">Quick Add</button>
-						<div className="flex items-center gap-2">
-							<button className="text-on-surface-variant p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95 relative"><Icon>notifications</Icon><span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" /></button>
-							<button className="hidden sm:block text-on-surface-variant p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200 cursor-pointer active:scale-95"><Icon>help</Icon></button>
-						</div>
-						<div className="h-8 w-8 rounded-full overflow-hidden border border-outline-variant cursor-pointer hover:ring-2 hover:ring-secondary transition-all ml-2">
-							<img alt="User avatar" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-wOHpbVamXW12cHYwkWPOV9UQyWl5WeoKPJcjGp1UAwMC2uYoBHIC0CmrK99P87IX_Oq-DGJLQPws3HeCr-ynOiWNLuQqZFOwHgNB6ltEi_AaEPqMciT_1XwQv9rylJjAkxzIbQnyLV9ndOG4y4-LEbt3_IqXlRu97b_pFq4cX2gI_2EcZLNphX7b7Z_fNYlUrTuMlqr8w6KxXNmWWPJO3IfryiKTZPHOGiFAbkqdBZMKTyGRTv7l" />
+					<div className="flex items-center gap-stack-md ml-auto">
+						<button className="hidden sm:block text-secondary font-label-md text-label-md font-medium px-4 py-1.5 rounded border border-secondary hover:bg-secondary/5 transition-colors duration-200 cursor-pointer active:scale-95" onClick={onQuickAdd}>Quick Add</button>
+						<div className="h-8 w-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center border border-outline-variant ml-2">
+							<Icon size="20px">person</Icon>
 						</div>
 					</div>
 				</header>

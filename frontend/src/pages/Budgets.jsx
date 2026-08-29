@@ -7,8 +7,6 @@ const navItems = [
 	['dashboard', 'Dashboard', '/'],
 	['payments', 'Expenses', '/expenses'],
 	['account_balance_wallet', 'Budgets', '/budgets'],
-	['leaderboard', 'Statistics', '#'],
-	['settings', 'Settings', '#'],
 ]
 
 const iconByCategory = {
@@ -72,13 +70,6 @@ function Sidebar({ activePath, onLogout }) {
 				</p>
 			</div>
 
-			<div className="px-stack-lg mb-stack-lg">
-				<button className="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-stack-sm">
-					<Icon size="18px">add</Icon>
-					New Report
-				</button>
-			</div>
-
 			<nav className="flex-1 px-stack-sm flex flex-col gap-unit">
 				{navItems.map(([icon, label, href]) => (
 					<a
@@ -100,34 +91,26 @@ function Sidebar({ activePath, onLogout }) {
 			</nav>
 
 			<div className="mt-auto px-stack-sm flex flex-col gap-unit pt-stack-md border-t border-outline-variant/30 mx-stack-sm">
-				{[
-					['help', 'Help Center'],
-					['logout', 'Logout'],
-				].map(([icon, label]) => (
-					<a
-						className="flex items-center gap-stack-md text-on-surface-variant px-stack-md py-2 hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.98] duration-150 rounded-lg"
-						href="#"
-						key={label}
-						onClick={(event) => {
-							if (label === 'Logout') {
-								event.preventDefault()
-								onLogout?.()
-							}
-						}}
-					>
-						<Icon>{icon}</Icon>
+				<a
+					className="flex items-center gap-stack-md text-on-surface-variant px-stack-md py-2 hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.98] duration-150 rounded-lg"
+					href="#"
+					onClick={(event) => {
+						event.preventDefault()
+						onLogout?.()
+					}}
+				>
+					<Icon>logout</Icon>
 
-						<span className="font-label-md text-label-md">
-							{label}
-						</span>
-					</a>
-				))}
+					<span className="font-label-md text-label-md">
+						Logout
+					</span>
+				</a>
 			</div>
 		</aside>
 	)
 }
 
-function Header() {
+function Header({ onQuickAdd }) {
 	return (
 		<header className="flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop sticky top-0 z-50 h-16 bg-surface shadow-sm">
 			<div className="md:hidden flex items-center gap-stack-md">
@@ -140,33 +123,16 @@ function Header() {
 				</span>
 			</div>
 
-			<div className="hidden md:flex items-center bg-surface-container-low rounded-lg px-3 py-2 border border-outline-variant/50 w-64">
-				<Icon size="20px">search</Icon>
-
-				<input
-					className="bg-transparent border-none outline-none font-body-md text-body-md text-primary w-full placeholder:text-on-surface-variant"
-					placeholder="Search budgets..."
-					type="text"
-				/>
-			</div>
-
-			<div className="flex items-center gap-stack-md">
-				<button className="hidden sm:block text-secondary font-label-md text-label-md font-medium px-4 py-1.5 rounded border border-secondary hover:bg-secondary/5 transition-colors duration-200">
+			<div className="flex items-center gap-stack-md ml-auto">
+				<button
+					className="hidden sm:block text-secondary font-label-md text-label-md font-medium px-4 py-1.5 rounded border border-secondary hover:bg-secondary/5 transition-colors duration-200 cursor-pointer active:scale-95"
+					onClick={onQuickAdd}
+				>
 					Quick Add
 				</button>
 
-				<button className="text-on-surface-variant p-2 rounded-full hover:bg-surface-container-high transition-colors relative">
-					<Icon>notifications</Icon>
-
-					<span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
-				</button>
-
-				<div className="h-8 w-8 rounded-full overflow-hidden border border-outline-variant ml-2">
-					<img
-						alt="User avatar"
-						className="w-full h-full object-cover"
-						src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-wOHpbVamXW12cHYwkWPOV9UQyWl5WeoKPJcjGp1UAwMC2uYoBHIC0CmrK99P87IX_Oq-DGJLQPws3HeCr-ynOiWNLuQqZFOwHgNB6ltEi_AaEPqMciT_1XwQv9rylJjAkxzIbQnyLV9ndOG4y4-LEbt3_IqXlRu97b_pFq4cX2gI_2EcZLNphX7b7Z_fNYlUrTuMlqr8w6KxXNmWWPJO3IfryiKTZPHOGiFAbkqdBZMKTyGRTv7l"
-					/>
+				<div className="h-8 w-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center border border-outline-variant ml-2">
+					<Icon size="20px">person</Icon>
 				</div>
 			</div>
 		</header>
@@ -180,7 +146,7 @@ const getCurrentMonthStr = () => {
 	return `${year}-${month}`
 }
 
-function Budgets({ activePath = '/budgets', onLogout }) {
+function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 	const [budgets, setBudgets] = useState([])
 	const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthStr())
 
@@ -470,7 +436,7 @@ function Budgets({ activePath = '/budgets', onLogout }) {
 			<Sidebar activePath={activePath} onLogout={onLogout} />
 
 			<div className="flex-1 flex flex-col min-w-0 md:ml-64 bg-surface">
-				<Header />
+				<Header onQuickAdd={onQuickAdd} />
 
 				<main className="flex-1 p-container-padding-mobile md:p-container-padding-desktop max-w-7xl mx-auto w-full">
 

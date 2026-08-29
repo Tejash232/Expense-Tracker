@@ -131,6 +131,19 @@ function App() {
   }
 
 
+  const [autoOpenAddExpense, setAutoOpenAddExpense] = useState(false)
+
+  const handleQuickAdd = () => {
+    setAutoOpenAddExpense(true)
+
+    if (path !== '/expenses') {
+      window.history.pushState({}, '', '/expenses')
+
+      setPath('/expenses')
+    }
+  }
+
+
   // ------------------------------------------------
   // LOGGED IN
   // ------------------------------------------------
@@ -139,7 +152,11 @@ function App() {
     activePath: path,
     onNavigate: navigate,
     onLogout: handleLogout,
+    onQuickAdd: handleQuickAdd,
+    autoOpenAddExpense,
+    setAutoOpenAddExpense,
   }
+
 
 
   if (path === '/expenses') {
