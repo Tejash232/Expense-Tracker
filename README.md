@@ -26,7 +26,7 @@ SpendWise is a full-stack personal expense and monthly budget tracking applicati
   - Total budget, total spent, remaining balance, and usage percentage calculations
 
 - **Dashboard Overview**
-  - High-level overview of monthly spending, budget remaining, and budget used
+  - High-level overview of spending and current-month budget usage
   - 30-day and 3-month spending period views
   - Interactive spending statistics line chart
   - Category spending breakdown & donut chart
@@ -34,7 +34,7 @@ SpendWise is a full-stack personal expense and monthly budget tracking applicati
 
 - **Session & UI Protection**
   - Protected route access requiring valid JWT token
-  - Logout functionality with automatic token invalidation
+  - Logout functionality that clears the stored JWT token
   - Clean, responsive UI built with modern Vanilla CSS styling
 
 ## Tech Stack
@@ -65,9 +65,11 @@ Expense-Tracker/
 │   │   ├── auth.py
 │   │   ├── budgets.py
 │   │   └── expenses.py
+│   ├── .gitignore
 │   ├── database.py
 │   ├── main.py
 │   ├── models.py
+│   ├── requirements.txt
 │   └── schemas.py
 ├── frontend/
 │   ├── src/
@@ -98,9 +100,10 @@ Expense-Tracker/
 1. Open a terminal in the project root.
 2. Activate your Python virtual environment (e.g. `.venv\Scripts\activate` on Windows or `source .venv/bin/activate` on Linux/macOS).
 3. Create a `backend/.env` file with your local environment variables (see [Environment Configuration](#environment-configuration)).
-4. Navigate to the `backend` directory:
+4. Navigate to the `backend` directory and install dependencies:
    ```bash
    cd backend
+   pip install -r requirements.txt
    ```
 5. Start the FastAPI backend server on port 8001:
    ```bash
