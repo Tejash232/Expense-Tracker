@@ -22,9 +22,6 @@ def run_migrations():
         conn.execute(text("ALTER TABLE budgets ADD COLUMN IF NOT EXISTS month DATE;"))
         conn.execute(text("UPDATE budgets SET month = '2026-08-01' WHERE month IS NULL;"))
 
-
-run_migrations()
-
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,

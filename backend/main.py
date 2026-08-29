@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import Base, engine
+from database import Base, engine, run_migrations
 from routes.expenses import router as expenses_router
 from routes.budgets import router as budgets_router
 from routes.auth import router as auth_router
@@ -10,8 +10,9 @@ from routes.auth import router as auth_router
 import models
 
 
-# Create database tables
+# Create database tables first, then run column migrations
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 
 app = FastAPI()
