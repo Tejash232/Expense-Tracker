@@ -65,6 +65,21 @@ function App() {
   }, [isLoggedIn, path])
 
 
+  // Keep authenticated users on app routes.
+  useEffect(() => {
+
+    if (
+      isLoggedIn &&
+      (path === '/login' || path === '/register')
+    ) {
+      window.history.replaceState({}, '', '/')
+
+      setPath('/')
+    }
+
+  }, [isLoggedIn, path])
+
+
   // Navigation function
   const navigate = (nextPath) => {
 
