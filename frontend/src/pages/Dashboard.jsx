@@ -195,7 +195,7 @@ function Dashboard({ activePath = '/', onLogout, onQuickAdd }) {
 	)
 	const remainingBudget = totalBudget - totalBudgetSpent
 	const budgetUsage = totalBudget > 0
-		? Math.min(100, (totalBudgetSpent / totalBudget) * 100)
+		? (totalBudgetSpent / totalBudget) * 100
 		: 0
 
 	const categoryTotals = periodExpenses.reduce((totals, expense) => {
@@ -430,7 +430,7 @@ function DashboardContent({
 					{totalBudget > 0 ? (
 						<>
 							<div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
-								<div className="bg-secondary h-full rounded-full" style={{ width: `${budgetUsage}%` }} />
+								<div className="bg-secondary h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, budgetUsage))}%` }} />
 							</div>
 							<span className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
 								{formatCurrency(totalBudgetSpent)} of {formatCurrency(totalBudget)} used

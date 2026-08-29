@@ -34,7 +34,7 @@ def calculate_spent(db: Session, user_id: int, category: str, month_date: date) 
     spent = (
         db.query(func.coalesce(func.sum(Expense.amount), 0))
         .filter(
-            Expense.category == category,
+            func.lower(Expense.category) == func.lower(category),
             Expense.user_id == user_id,
             Expense.date >= start,
             Expense.date <= end
