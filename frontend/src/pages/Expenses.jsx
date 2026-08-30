@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import API_URL from '../config.js'
+import { useData } from '../context/DataContext.jsx'
 import './Expenses.css'
 
 const navItems = [
@@ -140,12 +141,20 @@ function Expenses({
 	autoOpenAddExpense,
 	setAutoOpenAddExpense,
 }) {
-	const [expenses, setExpenses] = useState([])
+	const {
+		expenses,
+		expensesFetched,
+		expensesError,
+		fetchExpenses,
+		addExpenseState,
+		updateExpenseState,
+		deleteExpenseState,
+	} = useData()
+
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 	const [editingExpense, setEditingExpense] = useState(null)
 	const [activeExpenseId, setActiveExpenseId] = useState(null)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState('')
+	const [localError, setLocalError] = useState('')
 
 	useEffect(() => {
 		if (autoOpenAddExpense) {
@@ -168,51 +177,12 @@ function Expenses({
 	const [method, setMethod] = useState('All methods')
 	const [page, setPage] = useState(1)
 
-	// Load expenses from PostgreSQL through FastAPI
 	useEffect(() => {
-		const loadExpenses = async () => {
-			try {
-				setLoading(true)
-				setError('')
+		fetchExpenses()
+	}, [fetchExpenses])
 
-				const token = localStorage.getItem('access_token')
-
-				const response = await fetch(`${API_URL}/expenses/`, {
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				})
-
-				const responseText = await response.text()
-
-				if (response.status === 401) {
-					onLogout?.()
-					return
-				}
-
-				if (!response.ok) {
-					console.error(
-						'Backend response:',
-						response.status,
-						responseText
-					)
-
-					throw new Error(`Backend error: ${response.status}`)
-				}
-
-				const data = JSON.parse(responseText)
-
-				setExpenses(data)
-			} catch (err) {
-				console.error('Error loading expenses:', err)
-				setError('Could not load expenses from the database.')
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		loadExpenses()
-	}, [onLogout])
+	const loading = !expensesFetched && expenses.length === 0
+	const error = expensesError || localError
 
 	const filteredExpenses = useMemo(() => {
 		return expenses.filter((expense) => {
@@ -337,10 +307,7 @@ function Expenses({
 
 			const savedExpense = JSON.parse(responseText)
 
-			setExpenses((current) => [
-				savedExpense,
-				...current,
-			])
+			addExpenseState(savedExpense)
 
 			setNewExpense({
 				amount: '',
@@ -354,7 +321,7 @@ function Expenses({
 			setPage(1)
 		} catch (err) {
 			console.error('Error saving expense:', err)
-			setError('Could not save the expense to the database.')
+			setLocalError('Could not save the expense to the database.')
 		}
 	}
 
@@ -368,7 +335,7 @@ function Expenses({
 		}
 
 		try {
-			setError('')
+			setLocalError('')
 
 			const token = localStorage.getItem('access_token')
 
@@ -409,17 +376,11 @@ function Expenses({
 
 			const updatedExpense = JSON.parse(responseText)
 
-			setExpenses((current) =>
-				current.map((expense) =>
-					expense.id === updatedExpense.id
-						? updatedExpense
-						: expense
-				)
-			)
+			updateExpenseState(updatedExpense)
 			setEditingExpense(null)
 		} catch (err) {
 			console.error('Error updating expense:', err)
-			setError('Could not update the expense. Please try again.')
+			setLocalError('Could not update the expense. Please try again.')
 		}
 	}
 
@@ -433,7 +394,7 @@ function Expenses({
 		}
 
 		try {
-			setError('')
+			setLocalError('')
 
 			const token = localStorage.getItem('access_token')
 
@@ -464,15 +425,11 @@ function Expenses({
 				throw new Error(`Backend error: ${response.status}`)
 			}
 
-			setExpenses((current) =>
-				current.filter((currentExpense) =>
-					currentExpense.id !== expense.id
-				)
-			)
+			deleteExpenseState(expense.id)
 			setActiveExpenseId(null)
 		} catch (err) {
 			console.error('Error deleting expense:', err)
-			setError('Could not delete the expense. Please try again.')
+			setLocalError('Could not delete the expense. Please try again.')
 		}
 	}
 

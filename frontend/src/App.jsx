@@ -5,6 +5,7 @@ import Expenses from './pages/Expenses.jsx'
 import Budgets from './pages/Budgets.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import { DataProvider } from './context/DataContext.jsx'
 
 
 function currentPath() {
@@ -173,18 +174,17 @@ function App() {
   }
 
 
-
-  if (path === '/expenses') {
-    return <Expenses {...pageProps} />
-  }
-
-
-  if (path === '/budgets') {
-    return <Budgets {...pageProps} />
-  }
-
-
-  return <Dashboard {...pageProps} />
+  return (
+    <DataProvider onLogout={handleLogout}>
+      {path === '/expenses' ? (
+        <Expenses {...pageProps} />
+      ) : path === '/budgets' ? (
+        <Budgets {...pageProps} />
+      ) : (
+        <Dashboard {...pageProps} />
+      )}
+    </DataProvider>
+  )
 }
 
 

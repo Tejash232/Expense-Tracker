@@ -14,7 +14,7 @@ if not DATABASE_URL:
 
 DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 
 def run_migrations():

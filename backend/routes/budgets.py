@@ -58,20 +58,75 @@ def get_budgets(
 
     budgets = query.order_by(Budget.id.desc()).all()
 
-    result = []
+    if not budgets:
+        return []
 
-    for budget in budgets:
-        spent = calculate_spent(db, current_user.id, budget.category, budget.month)
+    if month is not None:
+        target_month = month.replace(day=1)
+        start, end = get_month_bounds(target_month)
 
-        result.append({
-            "id": budget.id,
-            "category": budget.category,
-            "amount": budget.amount,
-            "month": budget.month,
-            "spent": spent
-        })
+        expense_sums = (
+            db.query(
+                func.lower(Expense.category).label("cat_lower"),
+                func.coalesce(func.sum(Expense.amount), 0).label("total_spent")
+            )
+            .filter(
+                Expense.user_id == current_user.id,
+                Expense.date >= start,
+                Expense.date <= end
+            )
+            .group_by(func.lower(Expense.category))
+            .all()
+        )
 
-    return result
+        spent_map = {row.cat_lower: float(row.total_spent) for row in expense_sums}
+
+        return [
+            {
+                "id": b.id,
+                "category": b.category,
+                "amount": b.amount,
+                "month": b.month,
+                "spent": spent_map.get(b.category.lower(), 0.0)
+            }
+            for b in budgets
+        ]
+    else:
+        min_month = min(b.month for b in budgets)
+        max_month = max(b.month for b in budgets)
+        start_date, _ = get_month_bounds(min_month)
+        _, end_date = get_month_bounds(max_month)
+
+        expenses_in_range = (
+            db.query(
+                func.lower(Expense.category).label("cat_lower"),
+                Expense.date,
+                Expense.amount
+            )
+            .filter(
+                Expense.user_id == current_user.id,
+                Expense.date >= start_date,
+                Expense.date <= end_date
+            )
+            .all()
+        )
+
+        spent_map = {}
+        for row in expenses_in_range:
+            exp_month = row.date.replace(day=1)
+            key = (row.cat_lower, exp_month)
+            spent_map[key] = spent_map.get(key, 0.0) + float(row.amount)
+
+        return [
+            {
+                "id": b.id,
+                "category": b.category,
+                "amount": b.amount,
+                "month": b.month,
+                "spent": spent_map.get((b.category.lower(), b.month), 0.0)
+            }
+            for b in budgets
+        ]
 
 
 @router.post("/", response_model=BudgetResponse)

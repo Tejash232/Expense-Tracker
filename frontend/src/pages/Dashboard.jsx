@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import API_URL from '../config.js'
+import { useData } from '../context/DataContext.jsx'
 import './Dashboard.css'
 
 const navItems = [
@@ -92,79 +93,31 @@ function Icon({ children, filled = false, size }) {
 }
 
 function Dashboard({ activePath = '/', onLogout, onQuickAdd }) {
-	const [expenses, setExpenses] = useState([])
-	const [budgets, setBudgets] = useState([])
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState('')
+	const {
+		expenses,
+		expensesFetched,
+		expensesError,
+		fetchExpenses,
+		budgetsByMonth,
+		fetchBudgets,
+	} = useData()
+
 	const [period, setPeriod] = useState('30 Days')
 
+	const currentMonthStr = useMemo(() => {
+		const now = new Date()
+		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+	}, [])
+
+	const budgets = budgetsByMonth[currentMonthStr] || []
+
 	useEffect(() => {
-		let isActive = true
+		fetchExpenses()
+		fetchBudgets(currentMonthStr)
+	}, [fetchExpenses, fetchBudgets, currentMonthStr])
 
-		const loadDashboard = async () => {
-			try {
-				setLoading(true)
-				setError('')
-
-				const token = localStorage.getItem('access_token')
-
-				const now = new Date()
-				const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-
-				const [expensesResponse, budgetsResponse] = await Promise.all([
-					fetch(`${API_URL}/expenses/`, {
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}),
-					fetch(`${API_URL}/budgets/?month=${currentMonthStr}`, {
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}),
-				])
-
-
-				if (
-					expensesResponse.status === 401 ||
-					budgetsResponse.status === 401
-				) {
-					onLogout?.()
-					return
-				}
-
-				if (!expensesResponse.ok || !budgetsResponse.ok) {
-					throw new Error('Could not load dashboard data.')
-				}
-
-				const [expensesData, budgetsData] = await Promise.all([
-					expensesResponse.json(),
-					budgetsResponse.json(),
-				])
-
-				if (isActive) {
-					setExpenses(expensesData)
-					setBudgets(budgetsData)
-				}
-			} catch (err) {
-				console.error('Error loading dashboard:', err)
-
-				if (isActive) {
-					setError('Could not load your dashboard data. Please try again.')
-				}
-			} finally {
-				if (isActive) {
-					setLoading(false)
-				}
-			}
-		}
-
-		loadDashboard()
-
-		return () => {
-			isActive = false
-		}
-	}, [onLogout])
+	const loading = !expensesFetched && !budgetsByMonth[currentMonthStr]
+	const error = expensesError
 
 	const periodDays = period === '3 Months' ? 90 : 30
 	const today = new Date()

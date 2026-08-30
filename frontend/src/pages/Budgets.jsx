@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import API_URL from '../config.js'
+import { useData } from '../context/DataContext.jsx'
 import './Budgets.css'
 
 const navItems = [
@@ -146,78 +147,25 @@ const getCurrentMonthStr = () => {
 }
 
 function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
-	const [budgets, setBudgets] = useState([])
+	const {
+		budgetsByMonth,
+		budgetsError,
+		fetchBudgets,
+		addOrUpdateBudgetState,
+		deleteBudgetState,
+	} = useData()
+
 	const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthStr())
-
-	const [editingBudget, setEditingBudget] =
-		useState(null)
-
-	const [loading, setLoading] = useState(true)
-
-	const [error, setError] = useState('')
-
-	// --------------------------------------------------
-	// LOAD BUDGETS
-	// --------------------------------------------------
+	const [editingBudget, setEditingBudget] = useState(null)
+	const [localError, setLocalError] = useState('')
 
 	useEffect(() => {
-		const loadBudgets = async () => {
-			try {
-				setLoading(true)
-				setError('')
+		fetchBudgets(selectedMonth)
+	}, [selectedMonth, fetchBudgets])
 
-				const token =
-					localStorage.getItem('access_token')
-
-				const response = await fetch(
-					`${API_URL}/budgets/?month=${selectedMonth}-01`,
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				)
-
-				const responseText =
-					await response.text()
-
-				if (response.status === 401) {
-					onLogout?.()
-					return
-				}
-
-				if (!response.ok) {
-					console.error(
-						'Budget GET error:',
-						response.status,
-						responseText
-					)
-
-					throw new Error(
-						`Backend error: ${response.status}`
-					)
-				}
-
-				const data =
-					JSON.parse(responseText)
-
-				setBudgets(data)
-			} catch (err) {
-				console.error(
-					'Error loading budgets:',
-					err
-				)
-
-				setError(
-					'Could not load budgets from the database.'
-				)
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		loadBudgets()
-	}, [selectedMonth, onLogout])
+	const budgets = budgetsByMonth[selectedMonth] || []
+	const loading = !budgetsByMonth[selectedMonth]
+	const error = budgetsError || localError
 
 	// --------------------------------------------------
 	// TOTALS
@@ -336,24 +284,11 @@ function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 			const savedBudget =
 				JSON.parse(responseText)
 
-			if (isEditing) {
-				setBudgets((current) =>
-					current.map((budget) =>
-						budget.id ===
-						savedBudget.id
-							? savedBudget
-							: budget
-					)
-				)
-			} else {
-				if (savedBudget.month && savedBudget.month.startsWith(selectedMonth)) {
-					setBudgets((current) => [
-						savedBudget,
-						...current,
-					])
-				}
-			}
+			const monthKey = savedBudget.month
+				? savedBudget.month.slice(0, 7)
+				: selectedMonth
 
+			addOrUpdateBudgetState(savedBudget, monthKey)
 			setEditingBudget(null)
 		} catch (err) {
 			console.error(
@@ -361,7 +296,7 @@ function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 				err
 			)
 
-			setError(
+			setLocalError(
 				err.message || 'Could not save budget. Make sure the backend is running.'
 			)
 		}
@@ -377,7 +312,7 @@ function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 		}
 
 		try {
-			setError('')
+			setLocalError('')
 
 			const token =
 				localStorage.getItem('access_token')
@@ -412,19 +347,14 @@ function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 				)
 			}
 
-			setBudgets((current) =>
-				current.filter(
-					(currentBudget) =>
-						currentBudget.id !== budget.id
-				)
-			)
+			deleteBudgetState(budget.id, selectedMonth)
 		} catch (err) {
 			console.error(
 				'Error deleting budget:',
 				err
 			)
 
-			setError(
+			setLocalError(
 				'Could not delete the budget. Please try again.'
 			)
 		}
