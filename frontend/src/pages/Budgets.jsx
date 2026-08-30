@@ -218,7 +218,7 @@ function Budgets({ activePath = '/budgets', onLogout, onQuickAdd }) {
 		}
 
 		try {
-			setError('')
+			setLocalError('')
 
 			const token =
 				localStorage.getItem('access_token')

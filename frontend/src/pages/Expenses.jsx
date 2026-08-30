@@ -269,7 +269,7 @@ function Expenses({
 		}
 
 		try {
-			setError('')
+			setLocalError('')
 
 			const token = localStorage.getItem('access_token')
 
